@@ -90,7 +90,7 @@ class BluePrintPosPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
                                     if (offsetWidth != null && offsetWidth.isNotEmpty() && offsetHeight != null && offsetHeight.isNotEmpty()) {
                                         val data = webView.toBitmap(
                                             offsetWidth.toDouble(),
-                                            offsetHeight.toDouble()
+                                            offsetHeight.toDouble() - 200
                                         )
                                         if (data != null) {
                                             val bytes = data.toByteArray()
