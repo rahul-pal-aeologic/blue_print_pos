@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:blue_print_pos/models/models.dart';
@@ -122,6 +121,8 @@ class BluePrintPos {
     double duration = 0,
     PaperSize paperSize = PaperSize.mm58,
   }) async {
+    // Add below line if print not in full width <-- width -->
+    // paperSize = Platform.isAndroid ? PaperSize.mm72 : PaperSize.mm58;
     final Uint8List bytes = await contentToImage(
       content: receiptSectionText.content,
       duration: duration,
@@ -200,12 +201,29 @@ class BluePrintPos {
             bluetoothServices.firstWhere(
           (flutter_blue.BluetoothService service) => service.isPrimary,
         );
-        final flutter_blue.BluetoothCharacteristic characteristic =
-            bluetoothService.characteristics.firstWhere(
-          (flutter_blue.BluetoothCharacteristic bluetoothCharacteristic) =>
-              bluetoothCharacteristic.properties.write,
-        );
-        await characteristic.write(byteBuffer, withoutResponse: true);
+        final List<flutter_blue.BluetoothCharacteristic>
+            writableCharacteristics = bluetoothService.characteristics
+                .where((flutter_blue.BluetoothCharacteristic
+                        bluetoothCharacteristic) =>
+                    bluetoothCharacteristic.properties.write == true)
+                .toList();
+        if (writableCharacteristics.isNotEmpty) {
+          await writableCharacteristics[0]
+              .write(byteBuffer, withoutResponse: true);
+        } else {
+          final List<flutter_blue.BluetoothCharacteristic>
+              writableWithoutResponseCharacteristics = bluetoothService
+                  .characteristics
+                  .where((flutter_blue.BluetoothCharacteristic
+                          bluetoothCharacteristic) =>
+                      bluetoothCharacteristic.properties.writeWithoutResponse ==
+                      true)
+                  .toList();
+          if (writableWithoutResponseCharacteristics.isNotEmpty) {
+            await writableWithoutResponseCharacteristics[0]
+                .write(byteBuffer, withoutResponse: true);
+          }
+        }
       }
     } on Exception catch (error) {
       print('$runtimeType - Error $error');
