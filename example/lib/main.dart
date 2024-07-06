@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:blue_print_pos/blue_print_pos.dart';
 import 'package:blue_print_pos/models/models.dart';
 import 'package:blue_print_pos/receipt/receipt.dart';
+import 'package:esc_pos_utils_plus/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(MyApp());
@@ -21,6 +23,29 @@ class _MyAppState extends State<MyApp> {
   BlueDevice? _selectedDevice;
   bool _isLoading = false;
   int _loadingAtIndex = -1;
+  @override
+  void initState() {
+    super.initState();
+    requestBluetoothPermissions();
+  }
+
+  Future<void> requestBluetoothPermissions() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.bluetooth,
+      Permission.bluetoothScan,
+      Permission.bluetoothConnect,
+      Permission.location,
+    ].request();
+
+    if (statuses[Permission.bluetooth]!.isGranted &&
+        statuses[Permission.bluetoothScan]!.isGranted &&
+        statuses[Permission.bluetoothConnect]!.isGranted &&
+        statuses[Permission.location]!.isGranted) {
+      // Permissions are granted, proceed with Bluetooth operations
+    } else {
+      // Permissions are not granted, handle accordingly
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -215,32 +240,52 @@ class _MyAppState extends State<MyApp> {
 
     /// Example for Print Text
     final ReceiptSectionText receiptText = ReceiptSectionText();
-    receiptText.addImage(
-      base64.encode(Uint8List.view(logoBytes.buffer)),
-      width: 150,
+    receiptText.addText(
+      '*************************',
     );
+    // receiptText.addImage(
+    //   base64.encode(Uint8List.view(logoBytes.buffer)),
+    //   width: 100,
+    // );
+    // receiptText.addImage(
+    //   base64.encode(Uint8List.view(logoBytes.buffer)),
+    //   width: 200,
+    // );
+    // receiptText.addImage(
+    //   base64.encode(Uint8List.view(logoBytes.buffer)),
+    //   width: 300,
+    // );
+    // receiptText.addImage(
+    //   base64.encode(Uint8List.view(logoBytes.buffer)),
+    //   width: 400,
+    // );
     receiptText.addSpacer();
     receiptText.addText(
-      'MY STORE',
+      'BITSATOM - FHUNGER',
       size: ReceiptTextSizeType.medium,
       style: ReceiptTextStyleType.bold,
     );
     receiptText.addText(
-      'Black White Street, Jakarta, Indonesia',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
       size: ReceiptTextSizeType.small,
     );
     receiptText.addSpacer(useDashed: true);
-    receiptText.addLeftRightText('Time', '04/06/21, 10:00');
+    receiptText.addLeftRightText('Time', '6 July 2024, 12:43 PM');
     receiptText.addSpacer(useDashed: true);
     receiptText.addLeftRightText(
-      'Apple 1kg',
+      'Hi AMIT ',
       'Rp30.000',
       leftStyle: ReceiptTextStyleType.normal,
       rightStyle: ReceiptTextStyleType.bold,
     );
-    receiptText.addSpacer(useDashed: true);
     receiptText.addLeftRightText(
-      'TOTAL',
+      'Hi AMIT ',
+      'Rp   30.000',
+      leftStyle: ReceiptTextStyleType.normal,
+      rightStyle: ReceiptTextStyleType.bold,
+    );
+    receiptText.addLeftRightText(
+      'Hi AMIT ',
       'Rp30.000',
       leftStyle: ReceiptTextStyleType.normal,
       rightStyle: ReceiptTextStyleType.bold,
@@ -248,22 +293,35 @@ class _MyAppState extends State<MyApp> {
     receiptText.addSpacer(useDashed: true);
     receiptText.addLeftRightText(
       'Payment',
-      'Cash',
+      'Rp30.000',
       leftStyle: ReceiptTextStyleType.normal,
-      rightStyle: ReceiptTextStyleType.normal,
+      rightStyle: ReceiptTextStyleType.bold,
     );
-    receiptText.addSpacer(count: 2);
+    receiptText.addSpacer(useDashed: true);
+    receiptText.addText(
+      '*************************',
+    );
 
-    await _bluePrintPos.printReceiptText(receiptText);
+    receiptText.addSpacer(useDashed: true, count: 15);
+
+    await _bluePrintPos.printReceiptText(receiptText,
+        paperSize: PaperSize.mm72, useRaster: true);
 
     /// Example for print QR
-    await _bluePrintPos.printQR('www.google.com', size: 250);
+    // await _bluePrintPos.printQR('okokok', size: 250);
 
-    /// Text after QR
-    final ReceiptSectionText receiptSecondText = ReceiptSectionText();
-    receiptSecondText.addText('Powered by ayeee',
-        size: ReceiptTextSizeType.small);
-    receiptSecondText.addSpacer();
-    await _bluePrintPos.printReceiptText(receiptSecondText, feedCount: 1);
+    //   /// Text after QR
+    //   final ReceiptSectionText receiptSecondText = ReceiptSectionText();
+    //   receiptSecondText.addText('Powered by ayeee',
+    //       size: ReceiptTextSizeType.small);
+    //   receiptSecondText.addSpacer();
+    //   receiptSecondText.addLeftRightText(
+    //     'Payment',
+    //     'Cash',
+    //     leftStyle: ReceiptTextStyleType.normal,
+    //     rightStyle: ReceiptTextStyleType.normal,
+    //   );
+    //   await _bluePrintPos.printReceiptText(receiptSecondText);
+    // }
   }
 }
